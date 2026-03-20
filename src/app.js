@@ -29,7 +29,7 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 
 app.use('/session', require('./routes/session.routes'));
 
-//app.use('/curation', require('./routes/curation.routes'));
+app.use('/curation', require('./routes/curation.routes'));
 
 //app.use('/niche-groups', require('./routes/nicheGroups.routes'));
 //app.use('/dispatch', require('./routes/dispatch.routes'));
