@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const whatsappSessionRepository = require('../repositories/whatsappSessionRepository');
 
 const DEFAULT_SESSION_STATE = {
   status: 'starting',
@@ -14,7 +15,7 @@ class SessionManager {
     this.MAX_SESSIONS_PER_USER = 2;
   }
 
-  createSession(userId, sessionId) {
+  async createSession(userId, sessionId) {
     if (this.sessions.has(sessionId)) return true;
 
     if (this.isUserLimitReached(userId)) {
@@ -22,27 +23,43 @@ class SessionManager {
       return false;
     }
 
+    await whatsappSessionRepository.saveSession(sessionId, userId);
+
     this.sessions.set(sessionId, this.createSessionState(userId, sessionId));
     return true;
   }
 
-  loadExistingSessions() {
+  async loadExistingSessions() {
     const tokensPath = this.getTokensPath();
     if (!fs.existsSync(tokensPath)) return;
 
-    const sessionFolders = fs.readdirSync(tokensPath);
+    // Pega apenas as pastas (ignora arquivos soltos)
+    const sessionFolders = fs.readdirSync(tokensPath).filter(f => fs.lstatSync(path.join(tokensPath, f)).isDirectory());
 
-    sessionFolders.forEach((sessionId) => {
+    for (const sessionId of sessionFolders) {
+      // Vai no banco de dados e pergunta de quem é essa sessão
+      const dbUserId = await whatsappSessionRepository.getUserIdBySession(sessionId);
+
+      const userId = dbUserId || 'unknown_until_loaded';
+
+      if (!dbUserId) {
+        console.warn(`[SessionManager] ATENÇÃO: Sessão ${sessionId} encontrada no disco, mas sem dono no banco de dados!`);
+      }
+
       this.sessions.set(sessionId, {
         id: sessionId,
-        userId: 'unknown_until_loaded',
+        userId: userId,
         ...DEFAULT_SESSION_STATE
       });
-    });
+    }
   }
 
-  removeSession(sessionId) {
+  async removeSession(sessionId) {
     if (!this.sessions.has(sessionId)) return;
+
+    // Deleta do Banco de Dados
+    await whatsappSessionRepository.deleteSession(sessionId);
+
     this.sessions.delete(sessionId);
   }
 

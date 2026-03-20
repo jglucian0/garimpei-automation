@@ -15,7 +15,7 @@ async function startSession(req, res) {
     });
   }
 
-  const canCreate = manager.createSession(userId, sessionId);
+  const canCreate = await manager.createSession(userId, sessionId);
 
   if (!canCreate && !manager.getSession(sessionId)) {
     return res.status(403).json({
@@ -72,7 +72,7 @@ async function deleteSession(req, res) {
 
     await wppService.closeSession(sessionId);
 
-    manager.removeSession(sessionId);
+    await manager.removeSession(sessionId);
 
     const tokensPath = path.join(process.cwd(), 'tokens', sessionId);
     if (fs.existsSync(tokensPath)) {
