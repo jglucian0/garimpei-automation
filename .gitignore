@@ -12,6 +12,7 @@ yarn-error.log*
 .env.test
 .env.production
 *.pem
+tokens
 
 # Arquivos de Sistema Operacional
 .DS_Store
