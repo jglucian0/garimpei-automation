@@ -6,7 +6,7 @@
 # EXTRAÇÃO DE PRODUTOS (Scrapers)
 # ==========================================
 
-### Extração Amazon
+### Inicia nova seção
 POST {{baseUrl}}/session/start
 Content-Type: application/json
 x-api-key: {{apiKey}}
@@ -16,15 +16,11 @@ x-api-key: {{apiKey}}
   "sessionId": "sessao_A"
 }
 
-### Extração Mercado Livre
-POST {{baseUrl}}/extract
+### Listar todos os produtos capturados
+GET {{baseUrl}}/curation/pending/
 Content-Type: application/json
 x-api-key: {{apiKey}}
-
-{
-  "userId": "garimpei_user_01",
-  "url": "https://www.mercadolivre.com.br/creatina-monohidratada-250g-growth-supplements-forca-sabor-sem-sabor/p/MLB32376444"
-}
+x-user-id: garimpei_user_01
 
 ### Extração Centauro
 POST {{baseUrl}}/extract

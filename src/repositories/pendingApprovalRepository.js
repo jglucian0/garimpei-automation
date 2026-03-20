@@ -26,6 +26,40 @@ class PendingApprovalRepository {
       throw new Error('Falha ao salvar produto na lista de aprovação.', { cause: error });
     }
   }
+
+  async getPendingByUserId(userId) {
+    const query = `
+      SELECT pa.* FROM pending_approvals pa
+      INNER JOIN whatsapp_sessions ws ON pa.session_id = ws.session_id
+      WHERE ws.user_id = $1
+      ORDER BY pa.created_at ASC;
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
+
+  async deletePendingItem(id, userId) {
+    const query = `
+      DELETE FROM pending_approvals pa
+      USING whatsapp_sessions ws
+      WHERE pa.session_id = ws.session_id
+        AND pa.id = $1
+        AND ws.user_id = $2
+      RETURNING pa.id;
+    `;
+    const result = await pool.query(query, [id, userId]);
+    return result.rowCount > 0;
+  }
+
+  async getPendingItemById(id, userId) {
+    const query = `
+      SELECT pa.* FROM pending_approvals pa
+      INNER JOIN whatsapp_sessions ws ON pa.session_id = ws.session_id
+      WHERE pa.id = $1 AND ws.user_id = $2;
+    `;
+    const result = await pool.query(query, [id, userId]);
+    return result.rows[0];
+  }
 }
 
 module.exports = new PendingApprovalRepository();

@@ -33,11 +33,9 @@ class SessionManager {
     const tokensPath = this.getTokensPath();
     if (!fs.existsSync(tokensPath)) return;
 
-    // Pega apenas as pastas (ignora arquivos soltos)
     const sessionFolders = fs.readdirSync(tokensPath).filter(f => fs.lstatSync(path.join(tokensPath, f)).isDirectory());
 
     for (const sessionId of sessionFolders) {
-      // Vai no banco de dados e pergunta de quem é essa sessão
       const dbUserId = await whatsappSessionRepository.getUserIdBySession(sessionId);
 
       const userId = dbUserId || 'unknown_until_loaded';
@@ -57,7 +55,6 @@ class SessionManager {
   async removeSession(sessionId) {
     if (!this.sessions.has(sessionId)) return;
 
-    // Deleta do Banco de Dados
     await whatsappSessionRepository.deleteSession(sessionId);
 
     this.sessions.delete(sessionId);

@@ -61,6 +61,10 @@ class IngestionWorker {
 
         const apiData = response.data;
 
+        if (!apiData.link) {
+          throw new Error('Produto extraído, mas a API falhou em gerar o link de afiliado.');
+        }
+
         await pendingApprovalRepository.savePendingProduct({
           ...apiData,
           session_id: item.session_id,
