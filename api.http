@@ -1,78 +1,43 @@
 ### Configurações de Ambiente e Segurança
 @baseUrl = http://localhost:3002
 @apiKey = garimpei_secret_hash_99cc22
+@userId = garimpei_user_01
 
 # ==========================================
-# EXTRAÇÃO DE PRODUTOS (Scrapers)
+# ORQUESTRAÇÃO DO WHATSAPP E SESSÕES
 # ==========================================
 
-### Inicia nova seção
+### Inicia nova sessão (Gera o QR Code no terminal)
 POST {{baseUrl}}/session/start
 Content-Type: application/json
 x-api-key: {{apiKey}}
 
 {
-  "userId": "garimpei_user_01",
+  "userId": "{{userId}}",
   "sessionId": "sessao_A"
 }
 
-### Listar todos os produtos capturados
-GET {{baseUrl}}/curation/pending/
-Content-Type: application/json
-x-api-key: {{apiKey}}
-x-user-id: garimpei_user_01
-
-### Extração Centauro
-POST {{baseUrl}}/extract
-Content-Type: application/json
-x-api-key: {{apiKey}}
-
-{
-  "userId": "garimpei_user_01",
-  "url": "https://www.centauro.com.br/regata-nike-dri-fit-legend-masculina-m0vbj8-mktp.html?cor=02&af_viewthrough_lookback=1h&source_caller=api&pid=social-com&is_retargeting=true&af_click_lookback=1h&utm_content=achadosoriginais&utm_source=social-com&shortlink=6wt8p4bq&utm_medium=network&af_adset=achadosoriginais&utm_campaign=social-com-divulgacao_achadosoriginais&af_channel=network&c=social-com-divulgacao_achadosoriginais"
-}
-
-### Extração Nike
-POST {{baseUrl}}/extract
-Content-Type: application/json
-x-api-key: {{apiKey}}
-
-{
-  "userId": "garimpei_user_01",
-  "url": "https://www.nike.com.br/camisa-brasil-jordan-ii-2026-27-jogador-masculina-097619.html?cor=01"
-}
 
 # ==========================================
-# CONFIGURAÇÕES DE AFILIADOS E SESSÃO
+# CURADORIA DE PRODUTOS (Frontend / Painel)
 # ==========================================
 
-### Upload de Cookies do Mercado Livre (Extensão)
-POST {{baseUrl}}/config/cookies
+### Listar todos os produtos capturados (Aguardando Aprovação)
+GET {{baseUrl}}/curation/pending
 Content-Type: application/json
 x-api-key: {{apiKey}}
+x-user-id: {{userId}}
 
-{
-  "userId": "garimpei_user_01",
-  "cookies": "ssid=ghy-031018-y2KA6dKdeVjPvre8ltP6haVZREA1Vx-__-757601996; _d2id=8b86aec1-0669-4da3-923c-69b7f72d75f9; _csrf=eGDBgAzFovLMuunanq_ZnAuv",
-  "tag": "garimpei"
-}
-
-### Configurar Tag de Afiliado Amazon (Tracking ID)
-POST {{baseUrl}}/config/api
+### Aprovar produto e Travar Duplicidade (Move para fila de envio)
+# Obs: Troque o '11' pelo ID real do produto que veio na listagem acima
+POST {{baseUrl}}/curation/approve/11
 Content-Type: application/json
 x-api-key: {{apiKey}}
+x-user-id: {{userId}}
 
-{
-  "userId": "garimpei_user_01",
-  "tag": "ogarimpei-20"
-}
-
-### Configurar ID de Afiliado AWIN (Nike/Centauro)
-POST {{baseUrl}}/config/awin
+### Rejeitar produto (Apaga do banco de dados)
+# Obs: Troque o '11' pelo ID do produto que deseja excluir
+DELETE {{baseUrl}}/curation/reject/11
 Content-Type: application/json
 x-api-key: {{apiKey}}
-
-{
-  "userId": "garimpei_user_01",
-  "awinaffid": "2815810"
-}
+x-user-id: {{userId}}
