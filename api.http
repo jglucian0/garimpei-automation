@@ -3,9 +3,7 @@
 @apiKey = garimpei_secret_hash_99cc22
 @userId = garimpei_user_01
 
-# ==========================================
 # ORQUESTRAÇÃO DO WHATSAPP E SESSÕES
-# ==========================================
 
 ### Inicia nova sessão (Gera o QR Code no terminal)
 POST {{baseUrl}}/session/start
@@ -17,10 +15,7 @@ x-api-key: {{apiKey}}
   "sessionId": "sessao_A"
 }
 
-
-# ==========================================
 # CURADORIA DE PRODUTOS (Frontend / Painel)
-# ==========================================
 
 ### Listar todos os produtos capturados (Aguardando Aprovação)
 GET {{baseUrl}}/curation/pending

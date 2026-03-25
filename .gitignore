@@ -35,6 +35,7 @@ Thumbs.db
 # Específico do Projeto: Garimpei API Rest
 # Ignora arquivos temporários e downloads
 uploads/temp/*
+uploads
 
 # Ignora cookies gerados/baixados
 uploads/cookies/*

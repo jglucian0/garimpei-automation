@@ -38,6 +38,16 @@ class ProductRepository {
     const result = await pool.query(query, values);
     return result.rows[0];
   }
+
+  async getProductsByUserId(userId) {
+    const query = `
+      SELECT * FROM products 
+      WHERE user_id = $1 
+      ORDER BY updated_at DESC
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
 }
 
 module.exports = new ProductRepository();

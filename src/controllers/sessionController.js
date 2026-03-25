@@ -11,7 +11,7 @@ async function startSession(req, res) {
 
   if (!userId || !sessionId) {
     return res.status(400).json({
-      error: 'Os campos userId e sessionId são obrigatórios.'
+      error: 'The userId and sessionId fields are mandatory.'
     });
   }
 
@@ -19,14 +19,14 @@ async function startSession(req, res) {
 
   if (!canCreate && !manager.getSession(sessionId)) {
     return res.status(403).json({
-      error: 'Limite de instâncias do WhatsApp atingido para este usuário.'
+      error: 'WhatsApp instance limit reached for this user.'
     });
   }
 
   wppService.initSession(sessionId);
 
   return res.status(201).json({
-    message: `Processo de conexão iniciado para a sessão ${sessionId}. Aguarde o QR Code.`
+    message: `Connection process started for session ${sessionId}. Wait for the QR Code.`
   });
 }
 
@@ -35,7 +35,7 @@ function checkStatus(req, res) {
   const session = manager.getSession(sessionId);
 
   if (!session) {
-    return res.status(404).json({ error: 'Sessão não encontrada.' });
+    return res.status(404).json({ error: 'Session not found.' });
   }
 
   return res.json({
@@ -67,7 +67,7 @@ async function deleteSession(req, res) {
     const session = manager.getSession(sessionId);
 
     if (!session) {
-      return res.status(404).json({ error: 'Sessão não encontrada.' });
+      return res.status(404).json({ error: 'Session not found.' });
     }
 
     await wppService.closeSession(sessionId);
@@ -77,13 +77,12 @@ async function deleteSession(req, res) {
     const tokensPath = path.join(process.cwd(), 'tokens', sessionId);
     if (fs.existsSync(tokensPath)) {
       fs.rmSync(tokensPath, { recursive: true, force: true });
-      console.log(`[Session] Tokens removidos do disco: ${sessionId}`);
     }
 
-    return res.json({ success: true, message: 'Sessão desconectada e removida com sucesso.' });
+    return res.json({ success: true, message: 'Session disconnected and removed successfully.' });
   } catch (error) {
-    console.error(`[SessionController] Erro ao remover sessão ${sessionId}:`, error.message);
-    return res.status(500).json({ error: 'Falha interna ao remover sessão.' });
+    console.error(`[SessionController] Error removing session ${sessionId}:`, error.message);
+    return res.status(500).json({ error: 'Internal failure to remove session.' });
   }
 }
 
