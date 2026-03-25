@@ -23,8 +23,6 @@ class WppService {
 
   async initSession(sessionId) {
     try {
-      console.log(`[WppService] Iniciando instância do Chromium para: ${sessionId}`);
-
       const client = await wppconnect.create(this.createWppOptions(sessionId));
 
       this.updateSession(sessionId, { client });
@@ -35,7 +33,7 @@ class WppService {
 
       return client;
     } catch (error) {
-      console.error(`[WppService] Erro crítico ao iniciar sessão ${sessionId}:`, error.message);
+      console.error(`[WppService] Critical error when logging in ${sessionId}:`, error.message);
       this.updateSession(sessionId, { status: 'error' });
     }
   }
@@ -97,7 +95,7 @@ class WppService {
           });
         }
       } catch (error) {
-        console.warn(`[WppService] Falha ao checar estado inicial de ${sessionId}:`, error.message);
+        console.warn(`[WppService] Failed to check initial state of ${sessionId}:`, error.message);
       }
     }, 3000);
   }
@@ -105,7 +103,7 @@ class WppService {
   registerMessageListener(sessionId, client) {
     client.onMessage(async (message) => {
       messageRouterService.routeIncomingMessage(client, message, sessionId)
-        .catch(err => console.error(`[WppService] Erro no roteamento de mensagem: ${err.message}`));
+        .catch(err => console.error(`[WppService] Message routing error: ${err.message}`));
     });
   }
 
@@ -135,13 +133,13 @@ class WppService {
     try {
       await session.client.close();
     } catch (error) {
-      console.warn(`[WppService] Erro ao fechar cliente ${sessionId}:`, error.message);
+      console.warn(`[WppService] Error: error closing client ${sessionId}:`, error.message);
     }
   }
 
   async getAllGroups(sessionId) {
     const session = this.getSession(sessionId);
-    if (!session?.client) throw new Error('Sessão não conectada');
+    if (!session?.client) throw new Error('Session not connected');
 
     try {
       const chats = await session.client.listChats();
@@ -150,11 +148,11 @@ class WppService {
         .filter(chat => chat.isGroup)
         .map(group => ({
           id: group.id._serialized,
-          name: group.name || group.contact?.name || 'Grupo Sem Nome',
+          name: group.name || group.contact?.name || 'Unnamed Group',
           unreadCount: group.unreadCount
         }));
     } catch (error) {
-      throw new Error('Falha ao listar grupos do WhatsApp.', { cause: error });
+      throw new Error('Failed to list WhatsApp groups.', { cause: error });
     }
   }
 
@@ -169,21 +167,20 @@ class WppService {
 
   async sendText(sessionId, to, message) {
     const session = this.getSession(sessionId);
-    if (!session?.client) throw new Error('WhatsApp não está conectado');
+    if (!session?.client) throw new Error('WhatsApp is not connected');
 
     const destination = this.formatDestination(to);
 
     try {
       return await session.client.sendText(destination, message);
     } catch (error) {
-      console.warn(`[WppService] Primeira tentativa de envio de texto falhou, tentando fallback...`);
       return await session.client.sendText(destination, message);
     }
   }
 
   async sendImage(sessionId, to, imageUrl, caption) {
     const session = this.getSession(sessionId);
-    if (!session?.client) throw new Error('Sessão não conectada ou cliente offline');
+    if (!session?.client) throw new Error('Session not connected or client offline');
 
     const destination = this.formatDestination(to);
 
@@ -195,7 +192,7 @@ class WppService {
         caption
       );
     } catch (error) {
-      throw new Error('Falha ao enviar imagem pelo WhatsApp.', { cause: error });
+      throw new Error('Failed to send image via WhatsApp.', { cause: error });
     }
   }
 }
