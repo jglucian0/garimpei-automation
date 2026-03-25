@@ -47,7 +47,11 @@ function checkStatus(req, res) {
 }
 
 function listSessions(_req, res) {
-  const sessions = manager.getAllSessions();
+  let sessions = manager.getAllSessions();
+
+  if (!Array.isArray(sessions)) {
+    sessions = Object.values(sessions);
+  }
 
   const payload = sessions.map((session) => ({
     sessionId: session.id,

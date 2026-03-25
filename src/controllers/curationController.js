@@ -2,6 +2,7 @@ const fs = require('fs');
 const pendingApprovalRepository = require('../repositories/pendingApprovalRepository');
 const productRepository = require('../repositories/productRepository');
 const MessageFormatter = require('../utils/messageFormatter');
+const ImageService = require('../services/imageService');
 
 async function getPendingProducts(req, res) {
   const userId = req.userId;
@@ -85,9 +86,71 @@ async function getApprovedProducts(req, res) {
   }
 }
 
+async function updateApprovedProduct(req, res) {
+  const { id } = req.params;
+  const userId = req.userId;
+  const updateData = req.body;
+
+  try {
+    if (req.file) {
+
+      const oldProduct = await productRepository.getProductById(id, userId);
+      if (oldProduct && oldProduct.local_image_path && fs.existsSync(oldProduct.local_image_path)) {
+        fs.unlinkSync(oldProduct.local_image_path);
+      }
+
+      const tempPath = req.file.path;
+      const finalImagePath = await ImageService.applyWatermark(tempPath);
+
+      fs.unlinkSync(tempPath);
+
+      updateData.local_image_path = finalImagePath;
+    }
+
+    const updatedProduct = await productRepository.updateProduct(id, userId, updateData);
+
+    if (!updatedProduct) {
+      return res.status(404).json({ error: 'Product not found or you do not have permission.' });
+    }
+
+    return res.status(200).json({
+      message: 'Product updated successfully!',
+      product: updatedProduct
+    });
+  } catch (error) {
+    console.error('[CurationController] Error updating product:', error);
+    return res.status(500).json({ error: 'Internal error when updating product.' });
+  }
+}
+
+async function deleteApprovedProduct(req, res) {
+  const { id } = req.params;
+  const userId = req.userId;
+
+  try {
+    const deletedProduct = await productRepository.deleteProduct(id, userId);
+
+    if (!deletedProduct) {
+      return res.status(404).json({ error: 'Product not found or you do not have permission.' });
+    }
+
+    if (deletedProduct.local_image_path && fs.existsSync(deletedProduct.local_image_path)) {
+      fs.unlinkSync(deletedProduct.local_image_path);
+      console.log(`[Curated] Final product excluded. Image deleted: ${deletedProduct.local_image_path}`);
+    }
+
+    return res.status(200).json({ success: true, message: 'Product definitively removed from the firing queue.' });
+  } catch (error) {
+    console.error('[CurationController] Error deleting product:', error);
+    return res.status(500).json({ error: 'Internal error when deleting product.' });
+  }
+}
+
 module.exports = {
   getPendingProducts,
-  getApprovedProducts,
   rejectProduct,
-  approveProduct
+  approveProduct,
+  getApprovedProducts,
+  updateApprovedProduct,
+  deleteApprovedProduct
 };

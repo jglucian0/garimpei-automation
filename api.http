@@ -1,38 +1,137 @@
 ### Configurações de Ambiente e Segurança
 @baseUrl = http://localhost:3002
 @apiKey = garimpei_secret_hash_99cc22
-@userId = garimpei_user_01
 
-# ORQUESTRAÇÃO DO WHATSAPP E SESSÕES
+# Variaveis para simular o ambiente Multi-tenant (Vários Usuários)
+@userId_A = garimpei_user_01
+@userId_B = garimpei_user_02
 
-### Inicia nova sessão (Gera o QR Code no terminal)
+# Para testar, basta trocar a variável do header abaixo entre A e B
+@activeUser = {{userId_B}}
+@activeSession = sessao_B
+
+# 1. ORQUESTRAÇÃO DO WHATSAPP E SESSÕES
+
+### Iniciar nova sessão (Gera o QR Code no terminal)
 POST {{baseUrl}}/session/start
 Content-Type: application/json
 x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
 
 {
-  "userId": "{{userId}}",
-  "sessionId": "sessao_A"
+  "userId": "{{activeUser}}",
+  "sessionId": "{{activeSession}}"
 }
 
-# CURADORIA DE PRODUTOS (Frontend / Painel)
+### Listar todas as sessões ativas no servidor
+GET {{baseUrl}}/session/list
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+### Verificar o Status de uma Sessão Específica
+GET {{baseUrl}}/session/status/{{activeSession}}
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+### Deletar / Desconectar uma Sessão
+DELETE {{baseUrl}}/session/{{activeSession}}
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+
+
+
+
+# 2. GESTÃO DE GRUPOS
+
+### Listar todos os Grupos que o Bot faz parte (Para o Front desenhar o Select)
+GET {{baseUrl}}/session/{{activeSession}}/groups
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+### Configurar permissão de um Grupo (Cadastrar como 'coletor' ou 'dispatch')
+POST {{baseUrl}}/session/{{activeSession}}/groups/config
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+{
+  "groupId": "120363408242592797@g.us",
+  "groupName": "GRUPO DE COLETA",
+  "role": "coletor", 
+  "niche": "academia"
+}
+
+
+
+
+
+# 3. CURADORIA DE PRODUTOS
 
 ### Listar todos os produtos capturados (Aguardando Aprovação)
 GET {{baseUrl}}/curation/pending
 Content-Type: application/json
 x-api-key: {{apiKey}}
-x-user-id: {{userId}}
+x-user-id: {{activeUser}}
 
-### Aprovar produto e Travar Duplicidade (Move para fila de envio)
-# Obs: Troque o '11' pelo ID real do produto que veio na listagem acima
-POST {{baseUrl}}/curation/approve/11
+### Aprovar produto (Move para fila de envio e Trava Duplicidade)
+# Obs: Troque o '60' pelo ID do produto pendente
+POST {{baseUrl}}/curation/approve/60
 Content-Type: application/json
 x-api-key: {{apiKey}}
-x-user-id: {{userId}}
+x-user-id: {{activeUser}}
 
-### Rejeitar produto (Apaga do banco de dados)
-# Obs: Troque o '11' pelo ID do produto que deseja excluir
+{
+  "niche": "academia"
+}
+
+### Rejeitar produto (Apaga do banco e limpa foto do HD)
+# Obs: Troque o '11' pelo ID do produto pendente
 DELETE {{baseUrl}}/curation/reject/11
 Content-Type: application/json
 x-api-key: {{apiKey}}
-x-user-id: {{userId}}
+x-user-id: {{activeUser}}
+
+
+
+
+
+# 4. GESTÃO DA FILA DE DISPARO
+
+### Listar todos os produtos aprovados (Prontos para Envio)
+GET {{baseUrl}}/curation/approved
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+### Editar produto aprovado (Atualiza textos via JSON)
+# Obs: Troque o '15' pelo ID do produto aprovado. 
+# O Multer ignora a falta da imagem e o Controller atualiza apenas os textos enviados.
+### Editar produto aprovado (Atualiza TUDO, menos a foto)
+PUT {{baseUrl}}/curation/approved/15
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+{
+  "title": "Tênis Nike In-Season TR 14 Feminino",
+  "original_price": "699.99",
+  "current_price": "349.99",
+  "discount": "50% OFF",
+  "free_shipping": false,
+  "sold_quantity": "+500 vendidos",
+  "coupon_applied": false,
+  "status": "pending_dispatch",
+  "niche": "academia"
+}
+
+### Deletar produto aprovado (Desiste do envio e limpa a foto do HD)
+# Obs: Troque o '15' pelo ID do produto aprovado
+DELETE {{baseUrl}}/curation/approved/22
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
