@@ -1,7 +1,7 @@
 const MessageFormatter = require('../../src/utils/messageFormatter');
 
 describe('MessageFormatter Utility', () => {
-  it('deve formatar corretamente um produto completo do Mercado Livre', () => {
+  it('must correctly format a complete Mercado Livre product', () => {
     const mockProduct = {
       marketplace: 'ML',
       title: 'Creatina Monohidratada 1kg',
@@ -24,7 +24,7 @@ describe('MessageFormatter Utility', () => {
     expect(result).toContain('https://meli.la/123');
   });
 
-  it('deve formatar corretamente sem preço original e sem frete grátis', () => {
+  it('must format correctly without original price and without free shipping', () => {
     const mockProduct = {
       title: 'Cabo USB-C',
       current_price: 15.50,

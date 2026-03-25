@@ -50,6 +50,16 @@ class IngestionQueueRepository {
     const query = `UPDATE ingestion_queue SET status = $1 WHERE id = $2`;
     await pool.query(query, [status, id]);
   }
+
+  async updateStatus(id, status) {
+    const query = `UPDATE ingestion_queue SET status = $1 WHERE id = $2`;
+    await pool.query(query, [status, id]);
+  }
+
+  async deleteItem(id) {
+    const query = `DELETE FROM ingestion_queue WHERE id = $1`;
+    await pool.query(query, [id]);
+  }
 }
 
 module.exports = new IngestionQueueRepository();

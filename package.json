@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/jglucian0/garimpei-api-rest#readme",
   "dependencies": {
-    "@wppconnect-team/wppconnect": "1.38.0",
+    "@wppconnect-team/wppconnect": "^1.38.0",
     "axios": "^1.13.6",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",

@@ -9,6 +9,15 @@ class PendingApprovalRepository {
         current_price, discount, free_shipping, 
         sold_quantity, coupon_applied, local_image_path
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      ON CONFLICT (session_id, original_link) 
+      DO UPDATE SET 
+        current_price = EXCLUDED.current_price,
+        original_price = EXCLUDED.original_price,
+        discount = EXCLUDED.discount,
+        title = EXCLUDED.title,
+        free_shipping = EXCLUDED.free_shipping,
+        sold_quantity = EXCLUDED.sold_quantity,
+        coupon_applied = EXCLUDED.coupon_applied
       RETURNING id;
     `;
 
@@ -21,9 +30,9 @@ class PendingApprovalRepository {
 
     try {
       const result = await pool.query(query, values);
-      return result.rows[0].id;
+      return result.rows[0];
     } catch (error) {
-      throw new Error('Falha ao salvar produto na lista de aprovação.', { cause: error });
+      throw new Error('Failed to save product to approval list.', { cause: error });
     }
   }
 
