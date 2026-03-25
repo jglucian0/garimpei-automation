@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const ImageService = require('./imageService');
 const ingestionQueueRepository = require('../repositories/ingestionQueueRepository');
+const groupConfigRepository = require('../repositories/groupConfigRepository');
 
 class MessageRouterService {
   constructor() {
@@ -27,6 +28,13 @@ class MessageRouterService {
     try {
       if (message.fromMe) return;
 
+      if (message.isGroupMsg) {
+        const isCollector = await groupConfigRepository.isCollectorGroup(sessionId, message.from);
+        if (!isCollector) return;
+      } else {
+        return;
+      }
+
       const text = (message.caption || message.body || '').trim();
       if (!text) return;
 
@@ -35,26 +43,20 @@ class MessageRouterService {
 
       const isValidMarketplace = this.validDomains.some(domain => urlDetectada.includes(domain));
       if (!isValidMarketplace) {
-        console.log(`[Router] Link ignorado (Não é marketplace): ${urlDetectada}`);
         return;
       }
 
-      if (!message.isMedia && message.type !== 'image') {
-        console.log(`[Router] Link válido, mas SEM FOTO. Ignorando.`);
-        return;
+      let finalImagePath = null;
+
+      if (message.isMedia || message.type === 'image') {
+        const buffer = await client.decryptFile(message);
+        const tempFileName = `temp_${Date.now()}.jpg`;
+        const tempFilePath = path.join(this.uploadPath, tempFileName);
+
+        fs.writeFileSync(tempFilePath, buffer);
+        finalImagePath = await ImageService.applyWatermark(tempFilePath);
+        fs.unlinkSync(tempFilePath);
       }
-
-      console.log(`[Router] Produto válido detectado! Baixando mídia...`);
-
-      const buffer = await client.decryptFile(message);
-      const tempFileName = `temp_${Date.now()}.jpg`;
-      const tempFilePath = path.join(this.uploadPath, tempFileName);
-
-      fs.writeFileSync(tempFilePath, buffer);
-
-      const finalImagePath = await ImageService.applyWatermark(tempFilePath);
-
-      fs.unlinkSync(tempFilePath);
 
       await ingestionQueueRepository.enqueue({
         sessionId: sessionId,
@@ -64,10 +66,8 @@ class MessageRouterService {
         rawText: text
       });
 
-      console.log(`[Router] ✅ Produto enviado para a fila de extração com sucesso!`);
-
     } catch (error) {
-      console.error(`[Router] Erro ao processar mensagem recebida:`, error.message);
+      console.error(`[Router] Error processing received message:`, error.message);
     }
   }
 }

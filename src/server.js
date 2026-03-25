@@ -6,7 +6,7 @@ ingestionWorker.start();
 const PORT = process.env.PORT || 3002;
 
 process.on('SIGTERM', () => {
-  console.log('🛑 Recebido SIGTERM. Encerrando com segurança...');
+  console.log('Received SIGTERM. Closing safely...');
   process.exit(0);
 });
 

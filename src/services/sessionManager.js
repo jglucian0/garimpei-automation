@@ -19,7 +19,7 @@ class SessionManager {
     if (this.sessions.has(sessionId)) return true;
 
     if (this.isUserLimitReached(userId)) {
-      console.warn(`[SessionManager] Usuário ${userId} atingiu o limite de ${this.MAX_SESSIONS_PER_USER} sessões.`);
+      console.warn(`[SessionManager] User ${userId} has reached the limit of ${this.MAX_SESSIONS_PER_USER} sessions.`);
       return false;
     }
 
@@ -41,7 +41,7 @@ class SessionManager {
       const userId = dbUserId || 'unknown_until_loaded';
 
       if (!dbUserId) {
-        console.warn(`[SessionManager] ATENÇÃO: Sessão ${sessionId} encontrada no disco, mas sem dono no banco de dados!`);
+        console.warn(`[SessionManager] ATTENTION: Session ${sessionId} found on disk, but without owner in the database!`);
       }
 
       this.sessions.set(sessionId, {

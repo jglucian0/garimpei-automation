@@ -35,7 +35,7 @@ class ImageService {
 
       return outputPath;
     } catch (error) {
-      throw new Error('Erro ao aplicar marca dágua.', { cause: error });
+      throw new Error('Error when applying watermark.', { cause: error });
     }
   }
 }

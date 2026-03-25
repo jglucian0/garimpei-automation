@@ -5,11 +5,11 @@ function authMiddleware(req, res, next) {
   const userId = req.headers['x-user-id'];
 
   if (!apiKey || apiKey !== garimpeiApiKey) {
-    return res.status(401).json({ error: 'Acesso negado. Chave de API inválida.' });
+    return res.status(401).json({ error: 'Access denied. Invalid API key.' });
   }
 
   if (!userId) {
-    return res.status(400).json({ error: 'Acesso negado. Cabeçalho x-user-id é obrigatório.' });
+    return res.status(400).json({ error: 'Access denied. x-user-id header is required.' });
   }
 
   req.userId = userId;

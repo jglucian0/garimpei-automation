@@ -13,7 +13,7 @@ const { manager, wppService } = require('./controllers/sessionController');
       wppService.initSession(session.id);
     }
   } catch (error) {
-    console.error('[App] Erro crítico ao carregar sessões do banco:', error);
+    console.error('[App] Critical error when loading database sessions:', error);
   }
 })();
 
@@ -24,7 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health Check
-app.get('/', (req, res) => res.status(200).json({ message: 'Garimpei Automation Bot Online' }));
+app.get('/', (req, res) => res.status(200).json({ message: 'Garimpei Automation Online' }));
 app.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 
 app.use('/session', require('./routes/session.routes'));
