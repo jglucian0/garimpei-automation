@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const ImageService = require('./imageService');
+const manager = require('./sessionSingleton');
 const ingestionQueueRepository = require('../repositories/ingestionQueueRepository');
 const groupConfigRepository = require('../repositories/groupConfigRepository');
 
@@ -26,6 +27,13 @@ class MessageRouterService {
 
   async routeIncomingMessage(client, message, sessionId) {
     try {
+      const sessionConfig = manager.getSession(sessionId);
+      if (!sessionConfig || !sessionConfig.userId) {
+        console.error(`[Router] ❌ Mensagem ignorada. Sessão ${sessionId} sem dono (userId) atrelado na memória.`);
+        return;
+      }
+      const userId = sessionConfig.userId;
+
       if (message.fromMe) return;
 
       if (message.isGroupMsg) {
@@ -59,6 +67,7 @@ class MessageRouterService {
       }
 
       await ingestionQueueRepository.enqueue({
+        userId: userId,
         sessionId: sessionId,
         chatId: message.from,
         extractedUrl: urlDetectada,

@@ -48,6 +48,61 @@ class ProductRepository {
     const result = await pool.query(query, [userId]);
     return result.rows;
   }
+
+  async getProductById(id, userId) {
+    const query = `
+      SELECT * FROM products 
+      WHERE id = $1 AND user_id = $2;
+    `;
+    const result = await pool.query(query, [id, userId]);
+    return result.rows[0];
+  }
+
+  async updateProduct(id, userId, data) {
+    const setClauses = [];
+    const values = [];
+    let paramIndex = 1;
+
+    const updatableFields = [
+      'title', 'current_price', 'original_price', 'discount',
+      'free_shipping', 'coupon_applied', 'niche', 'status',
+      'local_image_path', 'sold_quantity'
+    ];
+
+    for (const field of updatableFields) {
+      if (data[field] !== undefined) {
+        setClauses.push(`${field} = $${paramIndex}`);
+        values.push(data[field]);
+        paramIndex++;
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return this.getProductById(id, userId);
+    }
+
+    const query = `
+      UPDATE products
+      SET ${setClauses.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1}
+      RETURNING *;
+    `;
+
+    values.push(id, userId);
+
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  }
+
+  async deleteProduct(id, userId) {
+    const query = `
+      DELETE FROM products 
+      WHERE id = $1 AND user_id = $2 
+      RETURNING local_image_path;
+    `;
+    const result = await pool.query(query, [id, userId]);
+    return result.rows[0];
+  }
 }
 
 module.exports = new ProductRepository();

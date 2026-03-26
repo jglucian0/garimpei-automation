@@ -67,6 +67,16 @@ class WppService {
       },
 
       statusFind: (statusSession) => {
+        if (statusSession === 'desconnectedMobile' || statusSession === 'browserClose') {
+          console.log(`[WPP] Attention: The session ${sessionId} was disconnected by the cell phone or the browser closed!`);
+          this.updateSession(sessionId, {
+            status: statusSession,
+            qrcode: null,
+            interfaceReady: false
+          });
+          return;
+        }
+
         if (statusSession === 'isLogged') {
           this.updateSession(sessionId, {
             status: 'connected',

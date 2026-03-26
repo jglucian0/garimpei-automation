@@ -18,7 +18,7 @@ async function registerGroup(req, res) {
       return res.status(403).json({ error: 'Invalid session or access denied.' });
     }
 
-    await groupConfigRepository.registerGroup(sessionId, groupId, groupName, role, niche);
+    await groupConfigRepository.registerGroup(userId, sessionId, groupId, groupName, role, niche);
 
     return res.status(200).json({
       success: true,

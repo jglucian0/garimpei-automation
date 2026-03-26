@@ -3,11 +3,11 @@ const pool = require('../infra/db');
 class IngestionQueueRepository {
   async enqueue(data) {
     const query = `
-      INSERT INTO ingestion_queue (session_id, chat_id, extracted_url, image_path, raw_text, status)
-      VALUES ($1, $2, $3, $4, $5, 'pending')
+      INSERT INTO ingestion_queue (user_id, session_id, chat_id, extracted_url, image_path, raw_text, status)
+      VALUES ($1, $2, $3, $4, $5, $6, 'pending')
       RETURNING id;
     `;
-    const values = [data.sessionId, data.chatId, data.extractedUrl, data.imagePath, data.rawText];
+    const values = [data.userId, data.sessionId, data.chatId, data.extractedUrl, data.imagePath, data.rawText];
     const result = await pool.query(query, values);
     return result.rows[0].id;
   }
