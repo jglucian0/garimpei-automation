@@ -7,8 +7,8 @@
 @userId_B = garimpei_user_02
 
 # Para testar, basta trocar a variável do header abaixo entre A e B
-@activeUser = {{userId_B}}
-@activeSession = sessao_B
+@activeUser = {{userId_A}}
+@activeSession = sessao_A
 
 # 1. ORQUESTRAÇÃO DO WHATSAPP E SESSÕES
 
@@ -80,7 +80,7 @@ x-user-id: {{activeUser}}
 
 ### Aprovar produto (Move para fila de envio e Trava Duplicidade)
 # Obs: Troque o '60' pelo ID do produto pendente
-POST {{baseUrl}}/curation/approve/60
+POST {{baseUrl}}/curation/approve/62
 Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
@@ -112,18 +112,18 @@ x-user-id: {{activeUser}}
 # Obs: Troque o '15' pelo ID do produto aprovado. 
 # O Multer ignora a falta da imagem e o Controller atualiza apenas os textos enviados.
 ### Editar produto aprovado (Atualiza TUDO, menos a foto)
-PUT {{baseUrl}}/curation/approved/15
+PUT {{baseUrl}}/curation/approved/24
 Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
 
 {
-  "title": "Tênis Nike In-Season TR 14 Feminino",
+  "title": "Tênis Nike",
   "original_price": "699.99",
   "current_price": "349.99",
   "discount": "50% OFF",
   "free_shipping": false,
-  "sold_quantity": "+500 vendidos",
+  "sold_quantity": "+501 vendidos",
   "coupon_applied": false,
   "status": "pending_dispatch",
   "niche": "academia"
@@ -131,7 +131,7 @@ x-user-id: {{activeUser}}
 
 ### Deletar produto aprovado (Desiste do envio e limpa a foto do HD)
 # Obs: Troque o '15' pelo ID do produto aprovado
-DELETE {{baseUrl}}/curation/approved/22
+DELETE {{baseUrl}}/curation/approved/24
 Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}

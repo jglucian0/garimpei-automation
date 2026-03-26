@@ -118,6 +118,7 @@ class IngestionWorker {
 
         await pendingApprovalRepository.savePendingProduct({
           ...apiData,
+          userId: userId,
           session_id: item.session_id,
           source_chat_id: item.chat_id,
           local_image_path: imagemParaSalvar,
