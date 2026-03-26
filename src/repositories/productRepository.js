@@ -59,33 +59,39 @@ class ProductRepository {
   }
 
   async updateProduct(id, userId, data) {
+    const setClauses = [];
+    const values = [];
+    let paramIndex = 1;
+
+    const updatableFields = [
+      'title', 'current_price', 'original_price', 'discount',
+      'free_shipping', 'coupon_applied', 'niche', 'status',
+      'local_image_path', 'sold_quantity'
+    ];
+
+    for (const field of updatableFields) {
+      if (data[field] !== undefined) {
+        setClauses.push(`${field} = $${paramIndex}`);
+        values.push(data[field]);
+        paramIndex++;
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return this.getProductById(id, userId);
+    }
+
     const query = `
       UPDATE products
-      SET 
-        title = COALESCE($1, title),
-        current_price = COALESCE($2, current_price),
-        original_price = COALESCE($3, original_price),
-        discount = COALESCE($4, discount),
-        free_shipping = COALESCE($5, free_shipping),
-        coupon_applied = COALESCE($6, coupon_applied),
-        niche = COALESCE($7, niche),
-        status = COALESCE($8, status),
-        local_image_path = COALESCE($9, local_image_path), 
-        sold_quantity = COALESCE($10, sold_quantity),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $10 AND user_id = $11
+      SET ${setClauses.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1}
       RETURNING *;
     `;
 
-    const values = [
-      data.title, data.current_price, data.original_price,
-      data.discount, data.free_shipping, data.coupon_applied,
-      data.niche, data.status, data.local_image_path, data.sold_quantity,
-      id, userId
-    ];
+    values.push(id, userId);
 
     const result = await pool.query(query, values);
-    return result.rows[0]; // Retorna o produto atualizado ou undefined se não achar
+    return result.rows[0];
   }
 
   async deleteProduct(id, userId) {

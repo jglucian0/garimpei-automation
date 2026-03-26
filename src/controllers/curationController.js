@@ -18,8 +18,8 @@ async function getPendingProducts(req, res) {
     });
     return res.status(200).json(itemsWithPreview);
   } catch (error) {
-    console.error('[CurationController] Erro ao buscar pendentes:', error);
-    return res.status(500).json({ error: 'Erro interno ao buscar produtos pendentes.' });
+    console.error('[CurationController] Error fetching pending items:', error);
+    return res.status(500).json({ error: 'Internal error when searching for pending products.' });
   }
 }
 
@@ -31,7 +31,7 @@ async function rejectProduct(req, res) {
     const pendingItem = await pendingApprovalRepository.getPendingItemById(id, userId);
 
     if (!pendingItem) {
-      return res.status(404).json({ error: 'Produto não encontrado.' });
+      return res.status(404).json({ error: 'Product not found.' });
     }
 
     await pendingApprovalRepository.deletePendingItem(id, userId);
@@ -50,6 +50,7 @@ async function rejectProduct(req, res) {
 async function approveProduct(req, res) {
   const { id } = req.params;
   const userId = req.userId;
+  const { niche } = req.body;
 
   try {
     const pendingItem = await pendingApprovalRepository.getPendingItemById(id, userId);
@@ -57,6 +58,8 @@ async function approveProduct(req, res) {
     if (!pendingItem) {
       return res.status(404).json({ error: 'Product not found in the queue or without permission.' });
     }
+
+    pendingItem.niche = niche || 'geral';
 
     const approvedProduct = await productRepository.approveAndUpsert(pendingItem, userId);
 
