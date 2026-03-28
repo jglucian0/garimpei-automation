@@ -29,7 +29,6 @@ class MessageRouterService {
     try {
       const sessionConfig = manager.getSession(sessionId);
       if (!sessionConfig || !sessionConfig.userId) {
-        console.error(`[Router] ❌ Mensagem ignorada. Sessão ${sessionId} sem dono (userId) atrelado na memória.`);
         return;
       }
       const userId = sessionConfig.userId;

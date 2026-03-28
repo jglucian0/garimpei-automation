@@ -181,6 +181,18 @@ async function deleteApprovedProduct(req, res) {
   }
 }
 
+async function getDispatchHistory(req, res) {
+  const userId = req.userId;
+
+  try {
+    const history = await productRepository.getDispatchedHistory(userId);
+    return res.status(200).json(history);
+  } catch (error) {
+    console.error('[CurationController] Error listing history:', error);
+    return res.status(500).json({ error: 'Internal error when searching for shot history.' });
+  }
+}
+
 module.exports = {
   getPendingProducts,
   updatePendingProduct,
@@ -188,5 +200,6 @@ module.exports = {
   approveProduct,
   getApprovedProducts,
   updateApprovedProduct,
-  deleteApprovedProduct
+  deleteApprovedProduct,
+  getDispatchHistory
 };

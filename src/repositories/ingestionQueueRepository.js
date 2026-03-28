@@ -40,7 +40,7 @@ class IngestionQueueRepository {
 
     } catch (error) {
       await client.query('ROLLBACK');
-      throw new Error('Falha grave ao orquestrar a fila de ingestão.', { cause: error });
+      throw new Error('Serious failure to orchestrate the ingestion queue.', { cause: error });
     } finally {
       client.release()
     }

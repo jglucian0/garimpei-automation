@@ -17,6 +17,15 @@ class GroupConfigRepository {
     return true;
   }
 
+  async getDispatchGroups(sessionId, niche) {
+    const query = `
+      SELECT group_id FROM group_config 
+      WHERE session_id = $1 AND niche = $2 AND role = 'dispatch';
+    `;
+    const result = await pool.query(query, [sessionId, niche]);
+    return result.rows.map(row => row.group_id);
+  }
+
   async isCollectorGroup(sessionId, groupId) {
     const query = `
       SELECT 1 FROM group_config
