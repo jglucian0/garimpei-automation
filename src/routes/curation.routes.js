@@ -16,4 +16,6 @@ router.delete('/approved/:id', curationController.deleteApprovedProduct);
 
 router.delete('/reject/:id', curationController.rejectProduct);
 
+router.get('/history', curationController.getDispatchHistory);
+
 module.exports = router;

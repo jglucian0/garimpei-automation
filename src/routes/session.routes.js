@@ -12,7 +12,6 @@ router.delete('/:sessionId', sessionController.deleteSession);
 router.get('/list', sessionController.listSessions);
 
 router.get('/:sessionId/groups', sessionController.getGroups);
-
 router.post('/:sessionId/groups/config', groupConfigController.registerGroup);
 
 module.exports = router;
