@@ -2,7 +2,7 @@ const dispatchConfigRepository = require('../repositories/dispatchConfigReposito
 const groupConfigRepository = require('../repositories/groupConfigRepository');
 const productRepository = require('../repositories/productRepository');
 const MessageFormatter = require('../utils/messageFormatter');
-
+const sseService = require('../services/sseService');
 const WppService = require('../services/wppService');
 const manager = require('../services/sessionSingleton');
 const wppService = new WppService(manager);
@@ -66,11 +66,18 @@ class DispatchWorker {
         if (successCount > 0) {
           await productRepository.markAsDispatched(product.id);
           await dispatchConfigRepository.updateLastExecution(config.id);
+
+          sseService.sendEventToUser(config.user_id, {
+            event: 'DISPATCH_SUCCESS',
+            product_id: product.id,
+            niche: config.niche,
+            timestamp: new Date().toISOString()
+          });
         } else {
           const errorData = await productRepository.incrementErrorCount(product.id);
 
           if (errorData.status === 'failed') {
-            console.log(`[DispatchWorker] Produto ${product.id} falhou 3 vezes e foi DESCARTADO da fila de envio.`);
+            console.log(`[DispatchWorker] Product ${product.id} failed 3 times and was DISPOSED from the dispatch queue.`);
           }
         }
       }

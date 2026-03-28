@@ -35,4 +35,6 @@ app.use('/dispatch-config', require('./routes/dispatch.routes'));
 
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
+app.use('/dashboard', require('./routes/dashboard.routes'));
+
 module.exports = app;
