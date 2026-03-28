@@ -99,8 +99,21 @@ Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
 
+### Buscar métricas da fila de envio (Para o Dashboard)
+GET {{baseUrl}}/curation/metrics
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
 ### Listar Histórico de Disparos (Apenas status 'dispatched' dos últimos 7 dias)
 GET {{baseUrl}}/curation/history
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+### Disparo Instantâneo / Send Now (Fura-fila do Cron)
+# Obs: Troque o '28' pelo ID do produto aprovado (pending_dispatch). 
+POST {{baseUrl}}/curation/send-now/28
 Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
