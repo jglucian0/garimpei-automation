@@ -42,9 +42,6 @@ x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
 
 
-
-
-
 # 2. GESTÃO DE GRUPOS
 
 ### Listar todos os Grupos que o Bot faz parte (Para o Front desenhar o Select)
@@ -60,14 +57,11 @@ x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
 
 {
-  "groupId": "120363408242592797@g.us",
-  "groupName": "GRUPO DE COLETA",
-  "role": "coletor", 
+  "groupId": "120363425978556994@g.us",
+  "groupName": "GRUPO DE ENVIO",
+  "role": "dispatch", 
   "niche": "academia"
 }
-
-
-
 
 
 # 3. CURADORIA DE PRODUTOS
@@ -79,8 +73,8 @@ x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
 
 ### Aprovar produto (Move para fila de envio e Trava Duplicidade)
-# Obs: Troque o '60' pelo ID do produto pendente
-POST {{baseUrl}}/curation/approve/62
+# Obs: Troque o '69' pelo ID do produto pendente
+POST {{baseUrl}}/curation/approve/69
 Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
@@ -97,9 +91,6 @@ x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
 
 
-
-
-
 # 4. GESTÃO DA FILA DE DISPARO
 
 ### Listar todos os produtos aprovados (Prontos para Envio)
@@ -108,30 +99,68 @@ Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
 
-### Editar produto aprovado (Atualiza textos via JSON)
-# Obs: Troque o '15' pelo ID do produto aprovado. 
-# O Multer ignora a falta da imagem e o Controller atualiza apenas os textos enviados.
+### Listar Histórico de Disparos (Apenas status 'dispatched' dos últimos 7 dias)
+GET {{baseUrl}}/curation/history
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
 ### Editar produto aprovado (Atualiza TUDO, menos a foto)
-PUT {{baseUrl}}/curation/approved/24
+# Obs: Troque o '28' pelo ID do produto aprovado. 
+PUT {{baseUrl}}/curation/approved/28
 Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
 
 {
-  "title": "Tênis Nike",
-  "original_price": "699.99",
-  "current_price": "349.99",
-  "discount": "50% OFF",
-  "free_shipping": false,
-  "sold_quantity": "+501 vendidos",
-  "coupon_applied": false,
-  "status": "pending_dispatch",
   "niche": "academia"
 }
 
 ### Deletar produto aprovado (Desiste do envio e limpa a foto do HD)
-# Obs: Troque o '15' pelo ID do produto aprovado
+# Obs: Troque o '24' pelo ID do produto aprovado
 DELETE {{baseUrl}}/curation/approved/24
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+
+# 5. CONFIGURAÇÕES DO MOTOR DE DISPARO (CRON)
+
+### Criar ou Atualizar Configuração de Disparo (Upsert)
+POST {{baseUrl}}/dispatch-config
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+{
+  "sessionId": "{{activeSession}}",
+  "niche": "academia",
+  "intervalMinutes": 2,
+  "window1Start": "00:00",
+  "window1End": "11:00",
+  "isPaused": false
+}
+
+### Listar todas as configurações de disparo do usuário
+GET {{baseUrl}}/dispatch-config
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+### Pausar / Retomar os envios de um nicho específico
+# Obs: Troque o '1' pelo ID da configuração retornado no GET acima
+PATCH {{baseUrl}}/dispatch-config/1/pause
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}
+
+{
+  "isPaused": true
+}
+
+### Deletar uma configuração de disparo
+# Obs: Troque o '1' pelo ID da configuração
+DELETE {{baseUrl}}/dispatch-config/1
 Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}

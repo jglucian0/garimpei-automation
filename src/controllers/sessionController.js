@@ -3,6 +3,7 @@ const path = require('path');
 
 const WppService = require('../services/wppService');
 const manager = require('../services/sessionSingleton');
+const dispatchConfigRepository = require('../repositories/dispatchConfigRepository');
 
 const wppService = new WppService(manager);
 
@@ -74,6 +75,8 @@ async function deleteSession(req, res) {
       return res.status(404).json({ error: 'Session not found.' });
     }
 
+    const userId = req.userId || session.userId;
+
     await wppService.closeSession(sessionId);
 
     await manager.removeSession(sessionId);
@@ -81,6 +84,15 @@ async function deleteSession(req, res) {
     const tokensPath = path.join(process.cwd(), 'tokens', sessionId);
     if (fs.existsSync(tokensPath)) {
       fs.rmSync(tokensPath, { recursive: true, force: true });
+    }
+
+    try {
+      if (userId) {
+        await dispatchConfigRepository.deleteConfigsBySessionId(sessionId, userId);
+        console.log(`[Session] Cleanup: Session trigger settings ${sessionId} have been removed.`);
+      }
+    } catch (dbError) {
+      console.error(`[Session] Error clearing trigger configs for session ${sessionId}:`, dbError.message);
     }
 
     return res.json({ success: true, message: 'Session disconnected and removed successfully.' });

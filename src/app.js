@@ -31,8 +31,7 @@ app.use('/session', require('./routes/session.routes'));
 
 app.use('/curation', require('./routes/curation.routes'));
 
-//app.use('/niche-groups', require('./routes/nicheGroups.routes'));
-//app.use('/dispatch', require('./routes/dispatch.routes'));
+app.use('/dispatch-config', require('./routes/dispatch.routes'));
 
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
