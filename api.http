@@ -177,3 +177,11 @@ DELETE {{baseUrl}}/dispatch-config/1
 Content-Type: application/json
 x-api-key: {{apiKey}}
 x-user-id: {{activeUser}}
+
+# 6. DASHBOARD E ANALYTICS
+
+### Buscar o Resumo Executivo
+GET {{baseUrl}}/dashboard/summary
+Content-Type: application/json
+x-api-key: {{apiKey}}
+x-user-id: {{activeUser}}

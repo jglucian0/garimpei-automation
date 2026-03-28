@@ -18,6 +18,16 @@ async function registerGroup(req, res) {
       return res.status(403).json({ error: 'Invalid session or access denied.' });
     }
 
+    if (role === 'dispatch') {
+      const currentGroupsCount = await groupConfigRepository.countDispatchGroupsByUserId(userId);
+
+      if (currentGroupsCount >= 5) {
+        return res.status(403).json({
+          error: 'Limite atingido. Você já possui 5 grupos de envio configurados. Faça um upgrade no seu plano para adicionar mais.'
+        });
+      }
+    }
+
     await groupConfigRepository.registerGroup(userId, sessionId, groupId, groupName, role, niche);
 
     return res.status(200).json({

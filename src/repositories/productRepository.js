@@ -153,6 +153,55 @@ class ProductRepository {
     return result.rows;
   }
 
+  async getDashboardSummary(userId) {
+    const query = `
+      SELECT 
+        COUNT(*) FILTER (WHERE status = 'dispatched' AND updated_at >= CURRENT_DATE) as dispatched_today,
+        COUNT(*) FILTER (WHERE status = 'dispatched' AND updated_at >= date_trunc('week', CURRENT_DATE)) as dispatched_week,
+        COUNT(*) FILTER (WHERE status = 'pending_dispatch') as total_pending,
+        COUNT(*) FILTER (WHERE status = 'failed') as total_failed
+      FROM products 
+      WHERE user_id = $1;
+    `;
+
+    const topNicheQuery = `
+      SELECT niche, COUNT(*) as count 
+      FROM products 
+      WHERE user_id = $1 AND status = 'pending_dispatch' AND niche IS NOT NULL
+      GROUP BY niche 
+      ORDER BY count DESC 
+      LIMIT 1;
+    `;
+
+    try {
+      const summaryResult = await pool.query(query, [userId]);
+      const topNicheResult = await pool.query(topNicheQuery, [userId]);
+
+      const stats = summaryResult.rows[0];
+      const topNiche = topNicheResult.rows[0] ? topNicheResult.rows[0].niche : 'Nenhum';
+
+      return {
+        dispatchedToday: parseInt(stats.dispatched_today || 0),
+        dispatchedWeek: parseInt(stats.dispatched_week || 0),
+        totalPending: parseInt(stats.total_pending || 0),
+        totalFailed: parseInt(stats.total_failed || 0),
+        topPendingNiche: topNiche
+      };
+    } catch (error) {
+      throw new Error('Failed to fetch dashboard summary.', { cause: error });
+    }
+  }
+
+  async getDailyCollectedCount(userId) {
+    const query = `
+      SELECT COUNT(*) as count 
+      FROM products 
+      WHERE user_id = $1 AND created_at >= CURRENT_DATE;
+    `;
+    const result = await pool.query(query, [userId]);
+    return parseInt(result.rows[0].count);
+  }
+
   async incrementErrorCount(id) {
     const query = `
       UPDATE products 

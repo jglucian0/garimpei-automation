@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const ingestionQueueRepository = require('../repositories/ingestionQueueRepository');
 const pendingApprovalRepository = require('../repositories/pendingApprovalRepository');
+const productRepository = require('../repositories/productRepository');
 const ImageService = require('../services/imageService');
 
 const { garimpeiApiUrl, garimpeiApiKey } = require('../config/env');
@@ -40,6 +41,14 @@ class IngestionWorker {
 
         if (!userId) {
           console.error(`[Worker] Error: userId not found for session ${item.session_id}.`);
+          await ingestionQueueRepository.updateStatus(currentItemId, 'error');
+          continue;
+        }
+
+        const collectedToday = await productRepository.getDailyCollectedCount(userId);
+
+        if (collectedToday >= 400) {
+          console.log(`[Limiter] User ${userId} reached the limit of 400 mines today. Link ignored.`);
           await ingestionQueueRepository.updateStatus(currentItemId, 'error');
           continue;
         }

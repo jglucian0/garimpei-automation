@@ -34,6 +34,13 @@ class DispatchWorker {
       const activeConfigs = await dispatchConfigRepository.getActiveConfigs();
 
       for (const config of activeConfigs) {
+        const summary = await productRepository.getDashboardSummary(config.user_id);
+
+        if (summary.dispatchedToday >= 125) {
+          console.log(`[Limiter] User ${config.user_id} reached the limit of 125 shots today. Queue paused until tomorrow.`);
+          continue;
+        }
+
         if (!this.isTimePermitted(config)) continue;
 
         const session = manager.getSession(config.session_id);

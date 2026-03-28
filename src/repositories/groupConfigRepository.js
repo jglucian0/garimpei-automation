@@ -17,6 +17,16 @@ class GroupConfigRepository {
     return true;
   }
 
+  async countDispatchGroupsByUserId(userId) {
+    const query = `
+      SELECT COUNT(*) as count 
+      FROM group_configs 
+      WHERE user_id = $1 AND role = 'dispatch';
+    `;
+    const result = await pool.query(query, [userId]);
+    return parseInt(result.rows[0].count);
+  }
+
   async getDispatchGroups(sessionId, niche) {
     const query = `
       SELECT group_id FROM group_config 
