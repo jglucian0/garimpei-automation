@@ -66,6 +66,12 @@ class DispatchWorker {
         if (successCount > 0) {
           await productRepository.markAsDispatched(product.id);
           await dispatchConfigRepository.updateLastExecution(config.id);
+        } else {
+          const errorData = await productRepository.incrementErrorCount(product.id);
+
+          if (errorData.status === 'failed') {
+            console.log(`[DispatchWorker] Produto ${product.id} falhou 3 vezes e foi DESCARTADO da fila de envio.`);
+          }
         }
       }
 

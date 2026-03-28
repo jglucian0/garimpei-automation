@@ -142,6 +142,30 @@ class ProductRepository {
     return result.rows[0];
   }
 
+  async getQueueMetrics(userId) {
+    const query = `
+      SELECT niche, COUNT(*) as pending_count
+      FROM products
+      WHERE user_id = $1 AND status = 'pending_dispatch'
+      GROUP BY niche;
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
+
+  async incrementErrorCount(id) {
+    const query = `
+      UPDATE products 
+      SET error_count = error_count + 1,
+          status = CASE WHEN error_count + 1 >= 3 THEN 'failed' ELSE status END,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING error_count, status;
+    `;
+    const result = await pool.query(query, [id]);
+    return result.rows[0];
+  }
+
 }
 
 module.exports = new ProductRepository();

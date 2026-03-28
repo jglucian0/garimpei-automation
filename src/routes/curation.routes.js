@@ -18,4 +18,8 @@ router.delete('/reject/:id', curationController.rejectProduct);
 
 router.get('/history', curationController.getDispatchHistory);
 
+router.get('/metrics', curationController.getMetrics);
+
+router.post('/send-now/:id', curationController.sendNow);
+
 module.exports = router;

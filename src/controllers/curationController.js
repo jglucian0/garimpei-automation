@@ -3,6 +3,11 @@ const pendingApprovalRepository = require('../repositories/pendingApprovalReposi
 const productRepository = require('../repositories/productRepository');
 const MessageFormatter = require('../utils/messageFormatter');
 const ImageService = require('../services/imageService');
+const dispatchConfigRepository = require('../repositories/dispatchConfigRepository');
+const groupConfigRepository = require('../repositories/groupConfigRepository');
+const WppService = require('../services/wppService');
+const manager = require('../services/sessionSingleton');
+const wppService = new WppService(manager);
 
 async function getPendingProducts(req, res) {
   const userId = req.userId;
@@ -193,6 +198,79 @@ async function getDispatchHistory(req, res) {
   }
 }
 
+async function getMetrics(req, res) {
+  const userId = req.userId;
+  try {
+    const metrics = await productRepository.getQueueMetrics(userId);
+    return res.status(200).json(metrics);
+  } catch (error) {
+    console.error('[CurationController] Error fetching metrics:', error);
+    return res.status(500).json({ error: 'Internal error when fetching metrics from the queue.' });
+  }
+}
+
+async function sendNow(req, res) {
+  const { id } = req.params;
+  const userId = req.userId;
+
+  try {
+    const product = await productRepository.getProductById(id, userId);
+    if (!product || product.status !== 'pending_dispatch') {
+      return res.status(404).json({ error: 'Product not found in the shipping queue.' });
+    }
+
+    const configs = await dispatchConfigRepository.getConfigsByUserId(userId);
+    const config = configs.find(c => c.niche === product.niche);
+
+    if (!config) {
+      return res.status(400).json({ error: `No active trigger settings for niche '${product.niche}'.` });
+    }
+
+    const sessionId = config.session_id;
+    const session = manager.getSession(sessionId);
+
+    if (!session || session.status !== 'connected') {
+      return res.status(400).json({ error: 'The WhatsApp responsible for this niche is disconnected.' });
+    }
+
+    const groups = await groupConfigRepository.getDispatchGroups(sessionId, product.niche);
+    if (groups.length === 0) {
+      return res.status(400).json({ error: 'No sending groups configured for this niche.' });
+    }
+
+    const messageText = MessageFormatter.formatPreview(product);
+    let successCount = 0;
+
+    for (const groupId of groups) {
+      try {
+        if (product.local_image_path) {
+          await wppService.sendImage(sessionId, groupId, product.local_image_path, messageText);
+        } else {
+          await wppService.sendText(sessionId, groupId, messageText);
+        }
+        successCount++;
+      } catch (sendError) {
+        console.error(`[SendNow] Erro no grupo ${groupId}:`, sendError.message);
+      }
+    }
+
+    if (successCount > 0) {
+      await productRepository.markAsDispatched(product.id);
+
+      await dispatchConfigRepository.updateLastExecution(config.id);
+
+      return res.status(200).json({ message: 'Lightning shot successful!' });
+    } else {
+      await productRepository.incrementErrorCount(product.id);
+      return res.status(500).json({ error: 'Failed to send the message. The error has been accounted for.' });
+    }
+
+  } catch (error) {
+    console.error('[CurationController] Error in Send Now:', error);
+    return res.status(500).json({ error: 'Internal error in lightning trigger.' });
+  }
+}
+
 module.exports = {
   getPendingProducts,
   updatePendingProduct,
@@ -201,5 +279,7 @@ module.exports = {
   getApprovedProducts,
   updateApprovedProduct,
   deleteApprovedProduct,
-  getDispatchHistory
+  getDispatchHistory,
+  getMetrics,
+  sendNow
 };
