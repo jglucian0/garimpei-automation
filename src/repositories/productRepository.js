@@ -158,16 +158,18 @@ class ProductRepository {
       SELECT 
         COUNT(*) FILTER (WHERE status = 'dispatched' AND updated_at >= CURRENT_DATE) as dispatched_today,
         COUNT(*) FILTER (WHERE status = 'dispatched' AND updated_at >= date_trunc('week', CURRENT_DATE)) as dispatched_week,
+        COUNT(*) FILTER (WHERE status = 'failed' AND updated_at >= CURRENT_DATE) as failed_today,
         COUNT(*) FILTER (WHERE status = 'pending_dispatch') as total_pending,
         COUNT(*) FILTER (WHERE status = 'failed') as total_failed
       FROM products 
       WHERE user_id = $1;
     `;
 
-    const topNicheQuery = `
+    // O Nicho que MAIS ENVIOU na semana (Sucesso)
+    const topDispatchedNicheQuery = `
       SELECT niche, COUNT(*) as count 
       FROM products 
-      WHERE user_id = $1 AND status = 'pending_dispatch' AND niche IS NOT NULL
+      WHERE user_id = $1 AND status = 'dispatched' AND updated_at >= date_trunc('week', CURRENT_DATE) AND niche IS NOT NULL
       GROUP BY niche 
       ORDER BY count DESC 
       LIMIT 1;
@@ -175,7 +177,7 @@ class ProductRepository {
 
     try {
       const summaryResult = await pool.query(query, [userId]);
-      const topNicheResult = await pool.query(topNicheQuery, [userId]);
+      const topNicheResult = await pool.query(topDispatchedNicheQuery, [userId]);
 
       const stats = summaryResult.rows[0];
       const topNiche = topNicheResult.rows[0] ? topNicheResult.rows[0].niche : 'Nenhum';
@@ -183,12 +185,13 @@ class ProductRepository {
       return {
         dispatchedToday: parseInt(stats.dispatched_today || 0),
         dispatchedWeek: parseInt(stats.dispatched_week || 0),
+        failedToday: parseInt(stats.failed_today || 0),
         totalPending: parseInt(stats.total_pending || 0),
         totalFailed: parseInt(stats.total_failed || 0),
-        topPendingNiche: topNiche
+        topDispatchedNiche: topNiche
       };
     } catch (error) {
-      throw new Error('Failed to fetch dashboard summary.', { cause: error });
+      throw new Error('Falha ao buscar o resumo do dashboard.', { cause: error });
     }
   }
 

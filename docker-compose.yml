@@ -3,9 +3,9 @@ version: '3.8'
 services:
   garimpei-api:
     build: .
-    container_name: garimpei-api-rest
+    container_name: garimpei-automation
     ports:
-      - '3001:3001'
+      - '3002:3002'
     env_file:
       - .env
     restart: unless-stopped
