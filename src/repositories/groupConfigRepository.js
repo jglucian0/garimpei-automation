@@ -20,7 +20,7 @@ class GroupConfigRepository {
   async countDispatchGroupsByUserId(userId) {
     const query = `
       SELECT COUNT(*) as count 
-      FROM group_configs 
+      FROM group_config
       WHERE user_id = $1 AND role = 'dispatch';
     `;
     const result = await pool.query(query, [userId]);
